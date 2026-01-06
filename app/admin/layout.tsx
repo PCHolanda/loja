@@ -26,7 +26,13 @@ export default function AdminLayout({
                     <Link href="/admin/courses">
                         <Button variant="ghost" className="w-full justify-start gap-2">
                             <Library className="h-4 w-4" />
-                            Cursos e Simulados
+                            Cursos
+                        </Button>
+                    </Link>
+                    <Link href="/admin/simulations">
+                        <Button variant="ghost" className="w-full justify-start gap-2">
+                            <Library className="h-4 w-4" />
+                            Simulados
                         </Button>
                     </Link>
                     <Link href="/admin/orders">

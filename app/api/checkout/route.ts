@@ -31,7 +31,8 @@ export async function POST(request: Request) {
         // Note: Amount must be in cents.
         const payload = {
             handle: infiniteHandle,
-            redirect_url: "http://localhost:3000/simulations?success=true", // Replace with your production URL
+            // Changing to Google to rule out 'localhost' validation errors on InfinitePay side
+            redirect_url: "https://www.google.com",
             // webhook_url: "https://your-domain.com/api/webhooks/infinitepay", // Optional
             order_nsu: `ORD-${Date.now()}`, // Unique Order ID
             items: [
