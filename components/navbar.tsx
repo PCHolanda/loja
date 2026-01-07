@@ -42,6 +42,11 @@ export function Navbar() {
                                 Entrar
                             </Button>
                         </Link>
+                        <Link href="/admin">
+                            <Button variant="ghost" size="sm">
+                                Admin
+                            </Button>
+                        </Link>
                         <Link href="/register">
                             <Button size="sm">
                                 Começar Agora

@@ -19,7 +19,7 @@ interface CheckoutModalProps {
     product: {
         id: number | string
         title: string
-        price: string // "R$ 49,90"
+        price: string | number // "R$ 49,90" or 4990 (cents)
     }
 }
 
@@ -35,8 +35,9 @@ export function CheckoutModal({ product }: CheckoutModalProps) {
     })
 
     // Parse price string to integer cents
-    const getAmountInCents = (priceStr: string) => {
-        return parseInt(priceStr.replace("R$", "").replace(",", "").replace(".", "").trim())
+    const getAmountInCents = (price: string | number) => {
+        if (typeof price === 'number') return price
+        return parseInt(price.replace("R$", "").replace(",", "").replace(".", "").trim())
     }
 
     const handleCheckout = async (e: React.FormEvent) => {
