@@ -13,17 +13,43 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Save } from "lucide-react"
 import { useState } from "react"
+import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 
 export default function NewCoursePage() {
     const [loading, setLoading] = useState(false)
+    const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        setTimeout(() => {
-            setLoading(false)
-            alert("Curso cadastrado com sucesso! (Simulação)")
-        }, 1000)
+
+        const form = e.target as HTMLFormElement
+        const title = (form.elements.namedItem('title') as HTMLInputElement).value
+        const price = (form.elements.namedItem('price') as HTMLInputElement).value
+        const duration = (form.elements.namedItem('duration') as HTMLInputElement).value
+        const description = (form.elements.namedItem('description') as HTMLInputElement).value
+
+        // Converte preço (reais) para centavos
+        const priceInCents = Math.round(parseFloat(price.replace(',', '.')) * 100)
+
+        const { error } = await supabase.from('products').insert({
+            title,
+            description,
+            price: priceInCents,
+            type: 'course',
+            metadata: { duration }
+        })
+
+        setLoading(false)
+
+        if (error) {
+            console.error(error)
+            alert("Erro ao criar curso: " + error.message)
+        } else {
+            alert("Curso criado com sucesso!")
+            router.push('/admin/courses')
+        }
     }
 
     return (

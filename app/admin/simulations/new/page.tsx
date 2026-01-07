@@ -13,25 +13,44 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Save } from "lucide-react"
 import { useState } from "react"
-// import { supabase } from "@/lib/supabase" // Uncomment when connecting to DB
+import { supabase } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 
 export default function NewSimulationPage() {
     const [loading, setLoading] = useState(false)
+    const router = useRouter()
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
 
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false)
-            alert("Simulado cadastrado com sucesso! (Simulação)")
-            // router.push('/admin/simulations')
-        }, 1000)
+        const form = e.target as HTMLFormElement
+        const title = (form.elements.namedItem('title') as HTMLInputElement).value
+        const price = (form.elements.namedItem('price') as HTMLInputElement).value
+        const type = (form.elements.namedItem('type') as HTMLInputElement).value
+        const description = (form.elements.namedItem('description') as HTMLInputElement).value
+        const questions = (form.elements.namedItem('questions') as HTMLInputElement).value
 
-        /* Real implementation:
-        const { error } = await supabase.from('products').insert({ ... })
-        */
+        // Converte preço (reais) para centavos
+        const priceInCents = Math.round(parseFloat(price.replace(',', '.')) * 100)
+
+        const { error } = await supabase.from('products').insert({
+            title,
+            description,
+            price: priceInCents,
+            type: 'simulation',
+            metadata: { questions, type_label: type }
+        })
+
+        setLoading(false)
+
+        if (error) {
+            console.error(error)
+            alert("Erro ao criar simulado: " + error.message)
+        } else {
+            alert("Simulado criado com sucesso!")
+            router.push('/admin/simulations')
+        }
     }
 
     return (

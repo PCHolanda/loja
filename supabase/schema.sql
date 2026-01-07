@@ -19,6 +19,7 @@ create table public.products (
   image_url text,
   type text check (type in ('course', 'simulation')) not null,
   content_url text,
+  metadata jsonb, -- Flexible storage for specific props (questions, duration, etc.)
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -7,8 +9,35 @@ import {
     CardTitle,
 } from "@/components/ui/card"
 import { PlusCircle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase"
+
+interface Course {
+    id: string
+    title: string
+    price: number
+    type: string
+    metadata: {
+        duration?: string
+    }
+}
 
 export default function AdminCoursesPage() {
+    const [courses, setCourses] = useState<Course[]>([])
+
+    useEffect(() => {
+        fetchCourses()
+    }, [])
+
+    async function fetchCourses() {
+        const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .eq('type', 'course')
+
+        if (data) setCourses(data)
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -27,23 +56,31 @@ export default function AdminCoursesPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {/* Placeholder */}
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Extensivo ENEM 2026
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">R$ 297,00</div>
-                        <p className="text-xs text-muted-foreground">
-                            Completo • Todas as matérias
-                        </p>
-                        <div className="mt-4 flex gap-2">
-                            <Button variant="outline" size="sm" className="w-full">Editar</Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                {courses.map((course) => (
+                    <Card key={course.id}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                {course.title}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(course.price / 100)}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                {course.metadata?.duration || 'Duração não definida'}
+                            </p>
+                            <div className="mt-4 flex gap-2">
+                                {/* Future: Add Edit link */}
+                                <Button variant="outline" size="sm" className="w-full">Editar</Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+
+                {courses.length === 0 && (
+                    <p className="col-span-3 text-muted-foreground">Nenhum curso cadastrado ainda.</p>
+                )}
             </div>
         </div>
     )
