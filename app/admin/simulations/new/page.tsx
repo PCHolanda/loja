@@ -11,9 +11,16 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { ArrowLeft, Save } from "lucide-react"
 import { useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { createSimulation } from "../../actions"
 import { useRouter } from "next/navigation"
 
 export default function NewSimulationPage() {
@@ -25,31 +32,26 @@ export default function NewSimulationPage() {
         setLoading(true)
 
         const form = e.target as HTMLFormElement
-        const title = (form.elements.namedItem('title') as HTMLInputElement).value
-        const price = (form.elements.namedItem('price') as HTMLInputElement).value
-        const type = (form.elements.namedItem('type') as HTMLInputElement).value
-        const description = (form.elements.namedItem('description') as HTMLInputElement).value
-        const questions = (form.elements.namedItem('questions') as HTMLInputElement).value
+        const formData = new FormData(form)
 
-        // Converte preço (reais) para centavos
-        const priceInCents = Math.round(parseFloat(price.replace(',', '.')) * 100)
+        // Ensure type_label matches the select value if possible, or we handle it in action
+        // For now, form data will capture 'type' as the name of the input if set correctly.
+        // Let's verify input names below.
 
-        const { error } = await supabase.from('products').insert({
-            title,
-            description,
-            price: priceInCents,
-            type: 'simulation',
-            metadata: { questions, type_label: type }
-        })
+        try {
+            const result = await createSimulation(formData)
 
-        setLoading(false)
-
-        if (error) {
+            if (!result.success) {
+                alert("Erro ao criar simulado: " + result.error)
+            } else {
+                alert("Simulado criado com sucesso!")
+                router.push('/admin/simulations')
+            }
+        } catch (error) {
             console.error(error)
-            alert("Erro ao criar simulado: " + error.message)
-        } else {
-            alert("Simulado criado com sucesso!")
-            router.push('/admin/simulations')
+            alert("Erro interno")
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -80,29 +82,40 @@ export default function NewSimulationPage() {
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="title">Título do Simulado</Label>
-                                <Input id="title" placeholder="Ex: Simulado ENEM 2026 - Dia 1" required />
+                                <Label htmlFor="title">Nome do Simulado</Label>
+                                <Input id="title" name="title" placeholder="Ex: Simulado Nacional #1" required />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="price">Preço (R$)</Label>
-                                    <Input id="price" placeholder="49,90" required type="number" step="0.01" />
+                                    <Input id="price" name="price" placeholder="49,90" required type="number" step="0.01" />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="type">Tipo</Label>
-                                    <Input id="type" placeholder="Ex: 2 dias de prova" />
+                                    <Select name="type_label" required>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Selecione..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="2 dias de prova">2 dias de prova</SelectItem>
+                                            <SelectItem value="1º Dia">1º Dia</SelectItem>
+                                            <SelectItem value="2º Dia">2º Dia</SelectItem>
+                                            <SelectItem value="Área Específica">Área Específica</SelectItem>
+                                            <SelectItem value="Teste">Teste</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="description">Descrição</Label>
-                                <Input id="description" placeholder="Breve descrição do conteúdo..." />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="questions">Quantidade de Questões</Label>
-                                <Input id="questions" placeholder="Ex: 90 questões" />
+                                <Input id="questions" name="questions" placeholder="Ex: 180 questões" />
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="description">Descrição Curta</Label>
+                                <Input id="description" name="description" placeholder="Ex: Modelo exato do ENEM 2025" />
                             </div>
 
                             <div className="flex justify-end">

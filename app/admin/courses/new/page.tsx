@@ -13,8 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Save } from "lucide-react"
 import { useState } from "react"
-import { supabase } from "@/lib/supabase"
-import { useRouter } from "next/navigation"
+import { createCourse } from "../../actions"
 
 export default function NewCoursePage() {
     const [loading, setLoading] = useState(false)
@@ -25,30 +24,22 @@ export default function NewCoursePage() {
         setLoading(true)
 
         const form = e.target as HTMLFormElement
-        const title = (form.elements.namedItem('title') as HTMLInputElement).value
-        const price = (form.elements.namedItem('price') as HTMLInputElement).value
-        const duration = (form.elements.namedItem('duration') as HTMLInputElement).value
-        const description = (form.elements.namedItem('description') as HTMLInputElement).value
+        const formData = new FormData(form)
 
-        // Converte preço (reais) para centavos
-        const priceInCents = Math.round(parseFloat(price.replace(',', '.')) * 100)
+        try {
+            const result = await createCourse(formData)
 
-        const { error } = await supabase.from('products').insert({
-            title,
-            description,
-            price: priceInCents,
-            type: 'course',
-            metadata: { duration }
-        })
-
-        setLoading(false)
-
-        if (error) {
+            if (!result.success) {
+                alert("Erro ao criar curso: " + result.error)
+            } else {
+                alert("Curso criado com sucesso!")
+                router.push('/admin/courses')
+            }
+        } catch (error) {
+            alert("Erro inesperado.")
             console.error(error)
-            alert("Erro ao criar curso: " + error.message)
-        } else {
-            alert("Curso criado com sucesso!")
-            router.push('/admin/courses')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -80,23 +71,23 @@ export default function NewCoursePage() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="title">Nome do Curso</Label>
-                                <Input id="title" placeholder="Ex: Matemática Zero ao Topo" required />
+                                <Input id="title" name="title" placeholder="Ex: Matemática Zero ao Topo" required />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="price">Preço (R$)</Label>
-                                    <Input id="price" placeholder="197,90" required type="number" step="0.01" />
+                                    <Input id="price" name="price" placeholder="197,90" required type="number" step="0.01" />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="duration">Duração</Label>
-                                    <Input id="duration" placeholder="Ex: 6 meses" />
+                                    <Input id="duration" name="duration" placeholder="Ex: 6 meses" />
                                 </div>
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="description">Descrição</Label>
-                                <Input id="description" placeholder="O que o aluno vai aprender..." />
+                                <Input id="description" name="description" placeholder="O que o aluno vai aprender..." />
                             </div>
 
                             <div className="flex justify-end">
