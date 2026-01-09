@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { ArrowLeft, Save } from "lucide-react"
 import { useState } from "react"
 import { createCourse } from "../../actions"
+import { useRouter } from "next/navigation"
 
 export default function NewCoursePage() {
     const [loading, setLoading] = useState(false)
